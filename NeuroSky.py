@@ -2,6 +2,7 @@ import threading
 import numpy as np
 import serial
 import binascii
+from queue import Queue
 
 
 class NeuroPy(object):
@@ -26,12 +27,11 @@ class NeuroPy(object):
     threadRun = True  # controls the running of thread
     callBacksDictionary = {}  # keep a track of all callbacks
 
-    def __init__(self, port, person_name, task_name, task_duration, baudRate=57600):
+    def __init__(self, port, queue, baudRate=57600):
         np.set_printoptions(suppress=True)
-        self.__port, self.__baudRate = port, baudRate
-        self.person_name = person_name
-        self.task_name = task_name
-        self.task_duration = task_duration
+        self.__port = port
+        self.__baudRate = baudRate
+        self.queue = queue
 
     def __del__(self):
         if self.srl is not None:
@@ -42,6 +42,7 @@ class NeuroPy(object):
         self.threadRun = True
         self.srl = serial.Serial(self.__port, self.__baudRate)
         threading.Thread(target=self.__packetParser(self.srl)).start()
+        #self.__packetParser(self.srl)
 
     def __packetParser(self, srl):
         "packetParser runs continously in a separate thread to parse packets from mindwave and update the corresponding variables"
@@ -66,7 +67,7 @@ class NeuroPy(object):
                 if checksum == int(binascii.hexlify(srl.read(1)).decode('ascii'), 16):
                     i = 0
 
-                    while i < payloadLength:
+                    while i < payloadLength - 1:
                         code = payload[i]
                         if code == '02':  # poorSignal
                             i += 1
@@ -154,10 +155,10 @@ class NeuroPy(object):
                         i += 1
 
     def stop(self):
-
-        self.threadRun = False
         if self.srl is not None:
             self.srl.close()
+        self.threadRun = False
+        
 
     def setCallBack(self, variable_name, callback_function):
         self.callBacksDictionary[variable_name] = callback_function
@@ -326,18 +327,15 @@ class NeuroPy(object):
     '''Appends the most recent read values to a local array'''
 
     def updateHistory(self):
-        if self.__history is None:  # create it
-            self.__history = np.array([[self.delta, self.theta, self.lowAlpha, self.highAlpha, self.lowBeta,
+        self.__history = np.array([[self.delta, self.theta, self.lowAlpha, self.highAlpha, self.lowBeta,
                                         self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
                                         self.rawValue,self.blinkStrength]])
-        else:
-            self.__history=np.append(self.__history, [[self.delta, self.theta, self.lowAlpha, self.highAlpha, self.lowBeta,
-                                        self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
-                                                       self.rawValue,self.blinkStrength]], axis=0)
-
+        self.queue.put(self.__history)
     '''Saves all read values to csv'''
     def save(self):
         print('Saving data...')
+        
         np.savetxt('records/'+self.person_name + '_' + self.task_name + '_' + self.task_duration + ".csv", self.__history,
                    delimiter=',',fmt='%.3f')
         print('Saved')
+        
