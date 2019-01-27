@@ -29,7 +29,7 @@ def data_reader(q):
     while(True):
         try:
             data = q.get()
-            logging.info("Received Data: {}".format(data[0]))
+            logging.info("Received Data: {}".format(data))
         except Exception as ex:
             logging.error("Error: {}".format(ex))
 

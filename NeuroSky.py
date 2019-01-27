@@ -327,8 +327,8 @@ class NeuroPy(object):
     '''Appends the most recent read values to a local array'''
 
     def updateHistory(self):
-        self.__history = np.array([[self.delta, self.theta, self.lowAlpha, self.highAlpha, self.lowBeta,
+        self.__history = [self.delta, self.theta, self.lowAlpha, self.highAlpha, self.lowBeta,
                                         self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
-                                        self.rawValue,self.blinkStrength]])
+                                        self.rawValue,self.blinkStrength]
         self.queue.put(self.__history)
     
