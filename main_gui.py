@@ -527,6 +527,7 @@ def NeuroSky_reader(q, attention_q):
     logging.info("Start to recording the data .... ")
     record.start()
 
+data_8 = 0
 
 def command_control_Tellow(attention_q):
     called = 0
@@ -537,16 +538,24 @@ def command_control_Tellow(attention_q):
                 #logging.info("Received Data: {}".format(data))
                 # print(data)
                 if data[9] > 30 and called == 0:
-                    print ("take off ")
+                    print ("###############take off########################## \n")
                     # subprocess.run(["cd Tello_Control","python3 Tello_command_control.py takeoff"])
                     # os.system('cd Tello_Control')
-                    os.system('python3 tello_test.py command.txt')
+                    # os.system('python3 tello_test.py command.txt')
                     # subprocess.call(['python3','Tello_command_control.py takeoff'])
                     called = 1
+                    global data_8
+                    data_8 = data[8]
+                elif called == 1 and data[8] < data_8:
+                    print("###############Decrease Height###################\n")
+                elif called == 1 and data[8] > data_8:
+                    print ("#############Increase Height####################\n")
+                elif called == 1 and data[8] == 0:
+                    print ("#############Land###############################\n")
 
         except Exception as ex:
             logging.error("Error: {}".format(ex))
-2
+
 if __name__ == '__main__':
     
     t1 = threading.Thread(target=NeuroSky_reader, args=(q,attention_queue,))
