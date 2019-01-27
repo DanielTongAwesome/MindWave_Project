@@ -331,11 +331,4 @@ class NeuroPy(object):
                                         self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
                                         self.rawValue,self.blinkStrength]])
         self.queue.put(self.__history)
-    '''Saves all read values to csv'''
-    def save(self):
-        print('Saving data...')
-        
-        np.savetxt('records/'+self.person_name + '_' + self.task_name + '_' + self.task_duration + ".csv", self.__history,
-                   delimiter=',',fmt='%.3f')
-        print('Saved')
-        
+    
