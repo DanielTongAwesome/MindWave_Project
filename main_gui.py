@@ -116,13 +116,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gamma_low_wave_plot.plotItem.plot()
         self.gamma_low_wave.addWidget(self.gamma_low_wave_plot)     
         # gamma_mid
-        self.gamma_mid_wave_plot = pg.PlotWidget(title="Mid")
+        self.gamma_mid_wave_plot = pg.PlotWidget(title="Medium")
         self.gamma_mid_wave_plot.setXRange(-10,0)
         self.data_to_plot_gamma_mid = np.empty((self.chunk_size+1,2))
         self.ptr_7 = 0
         self.curves_7 = []
         self.gamma_mid_wave_plot.plotItem.plot()
-        self.gamma_mid_wave.addWidget(self.gamma_mid_wave_plot)     
+        self.gamma_mid_wave.addWidget(self.gamma_mid_wave_plot)   
         # attention
         self.attention_wave_plot = pg.PlotWidget()
         self.attention_wave_plot.setXRange(-10,0)
@@ -147,6 +147,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.curves_10 = []
         self.rawdata_wave_plot.plotItem.plot()
         self.rawdata_wave.addWidget(self.rawdata_wave_plot)     
+ 
 
     def update_delta(self,delta):
         self.now = pg.ptime.time()
@@ -414,7 +415,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_meditation(message_list[9])
         self.raw_data.setText(str(message_list[10]))
         self.update_rawdata(message_list[10])
-    
+
     def run_thread(self):
         self.serial_message = SerialMessage(self)
         self.serial_message.start()
@@ -434,14 +435,16 @@ class SerialMessage(QThread):
     def run(self):
         while True:
             self.data = q.get()
+            q.queue.clear()
             logging.info("Received Data: {}".format(self.data))
             # print(self.data)
             self.process_message_stream()            
 
     def process_message_stream(self):
         self.line = self.data
+        # print(len(self.line))
         
-        if len(self.line) > 2:
+        if len(self.line) > 11:
             # print(self.line)
             self.msg_signal.emit(self.line)
 

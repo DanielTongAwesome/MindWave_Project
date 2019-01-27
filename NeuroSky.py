@@ -2,6 +2,7 @@ import threading
 import numpy as np
 import serial
 import binascii
+import time
 from queue import Queue
 
 
@@ -48,7 +49,6 @@ class NeuroPy(object):
         "packetParser runs continously in a separate thread to parse packets from mindwave and update the corresponding variables"
         # srl.open()
         while self.threadRun:
-
             p1 = binascii.hexlify(srl.read(1)).decode('ascii')
             p2 = binascii.hexlify(srl.read(1)).decode('ascii')
             while p1 != 'aa' or p2 != 'aa':
@@ -59,11 +59,13 @@ class NeuroPy(object):
                 payload = []
                 checksum = 0
                 payloadLength = int(binascii.hexlify(srl.read(1)).decode('ascii'), 16)
+                
                 for i in range(payloadLength):
                     tempPacket = binascii.hexlify(srl.read(1)).decode('ascii')
                     payload.append(tempPacket)
                     checksum += int(tempPacket, 16)
                 checksum = ~checksum & 0x000000ff
+                
                 if checksum == int(binascii.hexlify(srl.read(1)).decode('ascii'), 16):
                     i = 0
 
@@ -153,6 +155,7 @@ class NeuroPy(object):
 
                             self.updateHistory()
                         i += 1
+
 
     def stop(self):
         if self.srl is not None:
