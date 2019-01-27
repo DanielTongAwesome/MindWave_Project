@@ -42,11 +42,6 @@ logging.basicConfig(level=logging.ERROR,
 # global queue
 q = Queue()
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> c4eb0afbb62d9477bbbb193dc723141698718a26
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, headless=False):
         super(self.__class__, self).__init__()
@@ -157,8 +152,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.curves_10 = []
         self.rawdata_wave_plot.plotItem.plot()
         self.rawdata_wave.addWidget(self.rawdata_wave_plot)  
-        # opencv   
- 
+        # device_display   
+        self.device_display_plot = pg.PlotWidget(title="Device")
+        self.device_display_plot.setXRange(-10,0)
+        self.data_to_plot_device_display = np.empty((self.chunk_size+1,2))
+        self.ptr_11 = 0
+        self.curves_11 = []
+        self.device_display_plot.plotItem.plot()
+        self.device_display.addWidget(self.device_display_plot)
 
     def update_delta(self,delta):
         self.now = pg.ptime.time()
@@ -403,6 +404,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.curve_10.setData(x=self.data_to_plot_rawdata[:self.c_10+2,0], y=self.data_to_plot_rawdata[:self.c_10+2,1])
         self.ptr_10 += 1
 
+    def update_device(self,device_display):
+        self.now = pg.ptime.time()
+        for self.c_11 in self.curves_11:
+            self.c_11.setPos(-(self.now-self.start_time),0)
+
+        self.c_11 = self.ptr_11 % self.chunk_size
+        if self.c_11 == 0:
+            self.curve_11 = self.device_display_plot.plot()
+            self.curves_11.append(self.curve_11)
+            self.last_11 = self.data_to_plot_device_display[-1]
+            self.data_to_plot_device_display = np.empty((self.chunk_size+1,2))
+            self.data_to_plot_device_display[0] = self.last_11
+            while len(self.curves_11) > self.max_chunks:
+                self.c_11 = self.curves_11.pop(0)
+                self.device_display_plot.removeItem(self.c_11)
+        else:
+            self.curve_11 = self.curves_11[-1]
+        self.data_to_plot_device_display[self.c_11+1,0] = self.now - self.start_time
+        self.data_to_plot_device_display[self.c_11+1,1] = device_display
+        self.curve_11.setData(x=self.data_to_plot_device_display[:self.c_11+2,0], y=self.data_to_plot_device_display[:self.c_11+2,1])
+        self.ptr_11 += 1
+
     def update_text(self,message_list):
         self.delta_data.setText(str(message_list[0]))
         self.update_delta(message_list[0])
@@ -426,15 +449,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_meditation(message_list[9])
         self.raw_data.setText(str(message_list[10]))
         self.update_rawdata(message_list[10])
-    
+        
+    def update_packet(self,packet_signal):
+        print(packet_signal)
+        self.update_device(packet_signal[0])
+
     def run_thread(self):
         self.serial_message = SerialMessage(self)
         self.serial_message.start()
         self.serial_message.msg_signal.connect(self.update_text)
-
+        self.serial_message.packet_signal.connect(self.update_packet)
+        
 class SerialMessage(QThread):
 
     msg_signal = pyqtSignal(list)
+    packet_signal = pyqtSignal(int)
 
     def __init__(self, headless=False):
         super(self.__class__, self).__init__()
@@ -452,19 +481,23 @@ class SerialMessage(QThread):
             self.process_message_stream()            
 
     def process_message_stream(self):
-        self.line = self.data
+        self.line = []
+        # print(self.line)
         # print(len(self.line))
-        
-        if len(self.line) > 11:
-            # print(self.line)
-            self.msg_signal.emit(self.line)
-
+        if isinstance(self.data,list) == True:
+            self.msg_signal.emit(self.data)
+        else:
+            self.line.append(self.data)
+            print(self.line)
+            # self.msg_signal.emit(self.line)
+        # if len(self.line) > 11:
+        #     # print(self.line)
+        #     self.msg_signal.emit(self.line)
 
 def NeuroSky_reader(q):
-    record = NeuroPy(port="/dev/tty.MindWaveMobile-SerialPo-1", queue = q)
+    record = NeuroPy(port="/dev/rfcomm0", queue = q)
     logging.info("Start to recording the data .... ")
     record.start()
-
 
 if __name__ == '__main__':
     
