@@ -331,4 +331,5 @@ class NeuroPy(object):
                                         self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
                                         self.rawValue,self.blinkStrength]
         self.queue.put(self.__history)
+        # print(self.__history)
     

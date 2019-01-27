@@ -4,7 +4,7 @@ import threading
 import logging
 import time
 
-logging.basicConfig(level = logging.INFO, filename = "./records/" + time.strftime('%s.log'))
+# logging.basicConfig(level = logging.INFO, filename = "./records/" + time.strftime('%s.log'))
 
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.ERROR,
 
 
 def NeuroSky_reader(q):
-    record = NeuroPy(port="/dev/tty.MindWaveMobile-SerialPo-1", queue = q)
+    record = NeuroPy(port="/dev/rfcomm0", queue = q)
     logging.info("Start to recording the data .... ")
     record.start()
 
@@ -30,6 +30,7 @@ def data_reader(q):
         try:
             data = q.get()
             logging.info("Received Data: {}".format(data))
+            print(data)
         except Exception as ex:
             logging.error("Error: {}".format(ex))
 
