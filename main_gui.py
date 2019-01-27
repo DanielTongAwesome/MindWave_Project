@@ -1,3 +1,4 @@
+
 from NeuroSky import NeuroPy
 from queue import Queue
 import threading
@@ -7,6 +8,8 @@ import serial
 import time
 import datetime
 import math
+import subprocess
+import os
 from os import path
 
 print(sys.version)
@@ -22,8 +25,7 @@ import numpy as np
 import pyqtgraph as pg
 import random
 
-#import for openCV
-import cv2
+
 
 # logging.basicConfig(level = logging.INFO, filename = "./records/" + time.strftime('%s.log'))
 
@@ -43,6 +45,7 @@ logging.basicConfig(level=logging.ERROR,
 
 # global queue
 q = Queue()
+attention_queue = Queue()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, headless=False):
@@ -444,30 +447,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_text(self,message_list):
         self.delta_data.setText(str(message_list[0]))
-        self.update_delta(message_list[0])
+        self.update_delta(int(message_list[0]))
         self.theta_data.setText(str(message_list[1]))
-        self.update_theta(message_list[1])
+        self.update_theta(int(message_list[1]))
         self.alpha_low_data.setText(str(message_list[2]))
-        self.update_alpha_low(message_list[2])
+        self.update_alpha_low(int(message_list[2]))
         self.alpha_high_data.setText(str(message_list[3]))
-        self.update_alpha_high(message_list[3])
+        self.update_alpha_high(int(message_list[3]))
         self.beta_low_data.setText(str(message_list[4]))
-        self.update_beta_low(message_list[4])
+        self.update_beta_low(int(message_list[4]))
         self.beta_high_data.setText(str(message_list[5]))
-        self.update_beta_high(message_list[5])
+        self.update_beta_high(int(message_list[5]))
         self.gamma_low_data.setText(str(message_list[6]))
-        self.update_gamma_low(message_list[6])
+        self.update_gamma_low(int(message_list[6]))
         self.gamma_mid_data.setText(str(message_list[7]))
-        self.update_gamma_mid(message_list[7])
+        self.update_gamma_mid(int(message_list[7]))
         self.attention_data.setText(str(message_list[8]))
-        self.update_attention(message_list[8])
+        if message_list[8] > 30:
+            self.attention_data.setStyleSheet("color: rgb(255,255,255);background-color: rgba(0,255,0,200)")
+        else: 
+            self.attention_data.setStyleSheet("color: rgb(255, 255, 255);background-color: rgba(255,255,255,60)")
+        self.update_attention(int(message_list[8]))
         self.meditation_data.setText(str(message_list[9]))
-        self.update_meditation(message_list[9])
+        if message_list[9] > 30:
+            self.meditation_data.setStyleSheet("color: rgb(255,255,255);background-color: rgba(0,255,0,200)")
+        else: 
+            self.meditation_data.setStyleSheet("color: rgb(255, 255, 255);background-color: rgba(255,255,255,60)")
+        self.update_meditation(int(message_list[9]))
         self.raw_data.setText(str(message_list[10]))
-        self.update_rawdata(message_list[10])
+        self.update_rawdata(int(message_list[10]))
         
     def update_packet(self,message_list):
-        print(message_list[0])
+        #print(message_list[0])
         self.update_device(message_list[0])
 
     def run_thread(self):
@@ -511,13 +522,35 @@ class SerialMessage(QThread):
                 # print(self.counter)
             self.counter += 1
 
-def NeuroSky_reader(q):
-    record = NeuroPy(port="/dev/rfcomm0", queue = q)
+def NeuroSky_reader(q, attention_q):
+    record = NeuroPy(port="/dev/rfcomm0", queue = q, attention_q = attention_q)
     logging.info("Start to recording the data .... ")
     record.start()
 
+
+def command_control_Tellow(attention_q):
+    called = 0
+    while(True):
+        try:
+            data = attention_q.get()
+            if isinstance(data, list) == True:
+                #logging.info("Received Data: {}".format(data))
+                # print(data)
+                if data[9] > 30 and called == 0:
+                    print ("take off ")
+                    # subprocess.run(["cd Tello_Control","python3 Tello_command_control.py takeoff"])
+                    # os.system('cd Tello_Control')
+                    os.system('python3 tello_test.py command.txt')
+                    # subprocess.call(['python3','Tello_command_control.py takeoff'])
+                    called = 1
+
+        except Exception as ex:
+            logging.error("Error: {}".format(ex))
+2
 if __name__ == '__main__':
     
-    t1 = threading.Thread(target=NeuroSky_reader, args=(q,))
+    t1 = threading.Thread(target=NeuroSky_reader, args=(q,attention_queue,))
+    t2 = threading.Thread(target=command_control_Tellow, args=(attention_queue,))
     t1.start()
+    t2.start()
     main(MainWindow)
