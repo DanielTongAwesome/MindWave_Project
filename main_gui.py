@@ -14,14 +14,16 @@ print(sys.version)
 #import for PyQt
 from PyQt4.QtGui import QApplication, QMainWindow, QWidget, QPen, QColor, QGraphicsItem
 from PyQt4.QtCore import Qt, QThread, pyqtSignal, QDate, QTimer
+from mind_tello import Ui_MainWindow
+from main_qt import main
 
 #import for Matplotlib
 import numpy as np
 import pyqtgraph as pg
 import random
 
-from mind_tello import Ui_MainWindow
-from main_qt import main
+#import for openCV
+import cv2
 
 # logging.basicConfig(level = logging.INFO, filename = "./records/" + time.strftime('%s.log'))
 
@@ -37,6 +39,9 @@ logging.basicConfig(level=logging.ERROR,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
 q = Queue()
+
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, headless=False):
         super(self.__class__, self).__init__()
@@ -146,7 +151,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ptr_10 = 0
         self.curves_10 = []
         self.rawdata_wave_plot.plotItem.plot()
-        self.rawdata_wave.addWidget(self.rawdata_wave_plot)     
+        self.rawdata_wave.addWidget(self.rawdata_wave_plot)  
+        # opencv   
  
 
     def update_delta(self,delta):
@@ -415,7 +421,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_meditation(message_list[9])
         self.raw_data.setText(str(message_list[10]))
         self.update_rawdata(message_list[10])
-
+    
     def run_thread(self):
         self.serial_message = SerialMessage(self)
         self.serial_message.start()
@@ -448,10 +454,12 @@ class SerialMessage(QThread):
             # print(self.line)
             self.msg_signal.emit(self.line)
 
+
 def NeuroSky_reader(q):
     record = NeuroPy(port="/dev/rfcomm0", queue = q)
     logging.info("Start to recording the data .... ")
     record.start()
+
 
 if __name__ == '__main__':
     

@@ -325,8 +325,6 @@ class NeuroPy(object):
             self.callBacksDictionary["blinkStrength"](self.__blinkStrength)
 
 
-
-
     '''Appends the most recent read values to a local array'''
 
     def updateHistory(self):
