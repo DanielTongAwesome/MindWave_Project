@@ -27,6 +27,8 @@ import cv2
 
 # logging.basicConfig(level = logging.INFO, filename = "./records/" + time.strftime('%s.log'))
 
+logging.basicConfig(level = logging.ERROR)
+
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
@@ -450,9 +452,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.raw_data.setText(str(message_list[10]))
         self.update_rawdata(message_list[10])
         
-    def update_packet(self,packet_signal):
-        print(packet_signal)
-        self.update_device(packet_signal[0])
+    def update_packet(self,message_list):
+        print(message_list[0])
+        self.update_device(message_list[0])
 
     def run_thread(self):
         self.serial_message = SerialMessage(self)
@@ -463,7 +465,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 class SerialMessage(QThread):
 
     msg_signal = pyqtSignal(list)
-    packet_signal = pyqtSignal(int)
+    packet_signal = pyqtSignal(list)
 
     def __init__(self, headless=False):
         super(self.__class__, self).__init__()
@@ -473,23 +475,29 @@ class SerialMessage(QThread):
         # print("Connected to", self.port)
     
     def run(self):
+        self.counter = 0
         while True:
             self.data = q.get()
             q.queue.clear()
             logging.info("Received Data: {}".format(self.data))
             # print(self.data)
-            self.process_message_stream()            
+            self.process_message_stream(self.counter)            
 
-    def process_message_stream(self):
+    def process_message_stream(self,counter):
         self.line = []
         # print(self.line)
         # print(len(self.line))
         if isinstance(self.data,list) == True:
             self.msg_signal.emit(self.data)
         else:
-            self.line.append(self.data)
-            print(self.line)
-            # self.msg_signal.emit(self.line)
+            if self.counter == 100:
+                self.line.append(self.data)
+                self.packet_signal.emit(self.line)
+                self.counter = 0
+                # print(self.counter)
+            self.counter += 1
+            # print(self.line)
+            # 
         # if len(self.line) > 11:
         #     # print(self.line)
         #     self.msg_signal.emit(self.line)
