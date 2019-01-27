@@ -36,7 +36,10 @@ logging.basicConfig(level=logging.INFO,
 logging.basicConfig(level=logging.ERROR,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
+
+# global queue
 q = Queue()
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, headless=False):
         super(self.__class__, self).__init__()
@@ -446,7 +449,7 @@ class SerialMessage(QThread):
             self.msg_signal.emit(self.line)
 
 def NeuroSky_reader(q):
-    record = NeuroPy(port="/dev/rfcomm0", queue = q)
+    record = NeuroPy(port="/dev/tty.MindWaveMobile-SerialPo-1", queue = q)
     logging.info("Start to recording the data .... ")
     record.start()
 
