@@ -1,5 +1,4 @@
 from NeuroSky import NeuroPy
-import matplotlib.pyplot as plt
 from queue import Queue
 import threading
 import logging
@@ -35,7 +34,7 @@ def data_reader(q):
                 logging.info("Received Data: {}".format(data))
             else:
                 logging.info("Temp Package {}".format(data))
-
+            
         except Exception as ex:
             logging.error("Error: {}".format(ex))
 
