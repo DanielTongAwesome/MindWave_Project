@@ -64,6 +64,7 @@ class NeuroPy(object):
                     tempPacket = binascii.hexlify(srl.read(1)).decode('ascii')
                     payload.append(tempPacket)
                     checksum += int(tempPacket, 16)
+                    self.queue.put(int(tempPacket, 16))
                 checksum = ~checksum & 0x000000ff
                 
                 if checksum == int(binascii.hexlify(srl.read(1)).decode('ascii'), 16):
@@ -324,7 +325,6 @@ class NeuroPy(object):
         if "blinkStrength" in self.callBacksDictionary:  # if callback has been set, execute the function
             self.callBacksDictionary["blinkStrength"](self.__blinkStrength)
 
-
     '''Appends the most recent read values to a local array'''
 
     def updateHistory(self):
@@ -332,5 +332,4 @@ class NeuroPy(object):
                                         self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
                                         self.rawValue,self.blinkStrength]
         self.queue.put(self.__history)
-        # print(self.__history)
-    
+        print(self.__history)
