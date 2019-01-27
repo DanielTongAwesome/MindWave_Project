@@ -155,13 +155,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rawdata_wave_plot.plotItem.plot()
         self.rawdata_wave.addWidget(self.rawdata_wave_plot)  
         # device_display   
-        self.device_display_plot = pg.PlotWidget(title="Device")
+        self.device_display_plot = pg.PlotWidget(title="Device Monitor")
         self.device_display_plot.setXRange(-10,0)
         self.data_to_plot_device_display = np.empty((self.chunk_size+1,2))
         self.ptr_11 = 0
         self.curves_11 = []
         self.device_display_plot.plotItem.plot()
         self.device_display.addWidget(self.device_display_plot)
+        # Init 
+        self.update_delta(0)
+        self.update_theta(0)
+        self.update_alpha_low(0)
+        self.update_alpha_high(0)
+        self.update_beta_low(0)
+        self.update_beta_high(0)
+        self.update_gamma_low(0)
+        self.update_gamma_mid(0)
+        self.update_attention(float(0.01))
+        self.update_meditation(0)
+        self.update_rawdata(0)
+
 
     def update_delta(self,delta):
         self.now = pg.ptime.time()
@@ -428,6 +441,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.curve_11.setData(x=self.data_to_plot_device_display[:self.c_11+2,0], y=self.data_to_plot_device_display[:self.c_11+2,1])
         self.ptr_11 += 1
 
+
     def update_text(self,message_list):
         self.delta_data.setText(str(message_list[0]))
         self.update_delta(message_list[0])
@@ -496,11 +510,6 @@ class SerialMessage(QThread):
                 self.counter = 0
                 # print(self.counter)
             self.counter += 1
-            # print(self.line)
-            # 
-        # if len(self.line) > 11:
-        #     # print(self.line)
-        #     self.msg_signal.emit(self.line)
 
 def NeuroSky_reader(q):
     record = NeuroPy(port="/dev/rfcomm0", queue = q)

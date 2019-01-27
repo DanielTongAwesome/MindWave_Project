@@ -388,7 +388,7 @@ class Ui_MainWindow(object):
         self.gamma_label.setText(_translate("MainWindow", "Gamma Magnitude", None))
         self.delta_label.setText(_translate("MainWindow", "Delta Magnitude", None))
         self.theta_label.setText(_translate("MainWindow", "Theta Magnitude", None))
-        self.tello_label.setText(_translate("MainWindow", "Tello", None))
+        self.tello_label.setText(_translate("MainWindow", "Mind Tello", None))
         self.attention_label.setText(_translate("MainWindow", "Attention", None))
         self.meditation_label.setText(_translate("MainWindow", "Meditation", None))
         self.rawdata_label.setText(_translate("MainWindow", "Raw Magnitude", None))
