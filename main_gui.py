@@ -22,8 +22,7 @@ import numpy as np
 import pyqtgraph as pg
 import random
 
-#import for openCV
-import cv2
+
 
 # logging.basicConfig(level = logging.INFO, filename = "./records/" + time.strftime('%s.log'))
 
@@ -43,6 +42,7 @@ logging.basicConfig(level=logging.ERROR,
 
 # global queue
 q = Queue()
+attention_queue = Queue()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, headless=False):
@@ -467,7 +467,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_rawdata(message_list[10])
         
     def update_packet(self,message_list):
-        print(message_list[0])
+        #print(message_list[0])
         self.update_device(message_list[0])
 
     def run_thread(self):
@@ -511,13 +511,30 @@ class SerialMessage(QThread):
                 # print(self.counter)
             self.counter += 1
 
-def NeuroSky_reader(q):
-    record = NeuroPy(port="/dev/rfcomm0", queue = q)
+def NeuroSky_reader(q, attention_q):
+    record = NeuroPy(port="/dev/tty.MindWaveMobile-SerialPo-1", queue = q, attention_q = attention_q)
     logging.info("Start to recording the data .... ")
     record.start()
 
+
+def command_control_Tellow(attention_q):
+    while(True):
+        try:
+            data = attention_q.get()
+            if isinstance(data, list) == True:
+                #logging.info("Received Data: {}".format(data))
+                # print(data)
+                if data[2] > 50:
+                    print ("take off ")
+                
+                
+        except Exception as ex:
+            logging.error("Error: {}".format(ex))
+
 if __name__ == '__main__':
     
-    t1 = threading.Thread(target=NeuroSky_reader, args=(q,))
+    t1 = threading.Thread(target=NeuroSky_reader, args=(q,attention_queue,))
+    t2 = threading.Thread(target=command_control_Tellow, args=(attention_queue,))
     t1.start()
+    t2.start()
     main(MainWindow)

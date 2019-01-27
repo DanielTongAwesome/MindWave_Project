@@ -28,11 +28,12 @@ class NeuroPy(object):
     threadRun = True  # controls the running of thread
     callBacksDictionary = {}  # keep a track of all callbacks
 
-    def __init__(self, port, queue, baudRate=57600):
+    def __init__(self, port, queue, attention_q, baudRate=57600):
         np.set_printoptions(suppress=True)
         self.__port = port
         self.__baudRate = baudRate
         self.queue = queue
+        self.attention_queue = attention_q
 
     def __del__(self):
         if self.srl is not None:
@@ -332,4 +333,5 @@ class NeuroPy(object):
                                         self.highBeta, self.lowGamma, self.midGamma,self.attention,self.meditation,
                                         self.rawValue,self.blinkStrength]
         self.queue.put(self.__history)
-        print(self.__history)
+        self.attention_queue.put(self.__history)
+        #print(self.__history)
